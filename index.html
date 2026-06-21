@@ -1,0 +1,555 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.5, user-scalable=yes">
+    <title>ATS简历匹配检测器 · 免费简历优化工具 | 求职SEO</title>
+    <meta name="description" content="免费、快速的ATS简历匹配度检测工具。粘贴职位描述与简历，立即获得匹配评分与关键词优化建议。专为求职者与招聘SEO设计。">
+    <meta name="keywords" content="ATS检测, 简历匹配, SEO简历, 求职工具, 简历优化, ATS简历匹配检测器">
+    <meta name="robots" content="index, follow">
+    <meta property="og:title" content="ATS简历匹配检测器 · 免费简历优化工具">
+    <meta property="og:description" content="快速检测简历与职位描述匹配度，突破ATS筛选，提升面试机会。">
+    <meta property="og:type" content="website">
+    <meta name="twitter:card" content="summary_large_image">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: system-ui, -apple-system, 'Segoe UI', Roboto, 'Helvetica Neue', sans-serif;
+        }
+        body {
+            background: #f5f7fc;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding: 20px 16px 40px;
+            color: #1e293b;
+        }
+        .container {
+            max-width: 1100px;
+            width: 100%;
+        }
+        /* 语义化header */
+        header {
+            margin-bottom: 28px;
+            text-align: center;
+        }
+        header h1 {
+            font-size: 2.1rem;
+            font-weight: 700;
+            letter-spacing: -0.02em;
+            background: linear-gradient(145deg, #0f2b4b, #1e4a76);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            margin-bottom: 8px;
+        }
+        header p {
+            font-size: 1.1rem;
+            color: #334155;
+            max-width: 650px;
+            margin: 0 auto;
+            background: rgba(255,255,240,0.6);
+            padding: 6px 14px;
+            border-radius: 40px;
+            display: inline-block;
+            backdrop-filter: blur(2px);
+        }
+        .badge {
+            background: #dbeafe;
+            color: #1e3a8a;
+            padding: 4px 14px;
+            border-radius: 30px;
+            font-size: 0.8rem;
+            font-weight: 600;
+            display: inline-block;
+            margin-bottom: 12px;
+        }
+        /* 主工具卡片 */
+        .tool-card {
+            background: #ffffff;
+            border-radius: 32px;
+            box-shadow: 0 12px 30px rgba(0, 0, 0, 0.06), 0 4px 8px rgba(0, 20, 40, 0.03);
+            padding: 28px 24px 32px;
+            margin-bottom: 28px;
+            transition: box-shadow 0.2s;
+        }
+        .tool-grid {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 24px;
+        }
+        .input-area {
+            flex: 1 1 280px;
+            min-width: 240px;
+        }
+        .input-area label {
+            display: block;
+            font-weight: 600;
+            font-size: 0.95rem;
+            margin-bottom: 6px;
+            color: #0f2b4b;
+        }
+        .input-area textarea {
+            width: 100%;
+            min-height: 180px;
+            padding: 14px 16px;
+            border: 1px solid #d1d9e6;
+            border-radius: 20px;
+            font-size: 0.95rem;
+            line-height: 1.5;
+            background: #fafcff;
+            resize: vertical;
+            transition: 0.2s;
+        }
+        .input-area textarea:focus {
+            outline: 2px solid #2d6a9f;
+            border-color: transparent;
+            background: #ffffff;
+            box-shadow: 0 0 0 4px rgba(45, 106, 159, 0.08);
+        }
+        .action-row {
+            display: flex;
+            flex-wrap: wrap;
+            align-items: center;
+            gap: 14px;
+            margin: 22px 0 12px;
+        }
+        .primary-btn {
+            background: #1e4a76;
+            color: white;
+            border: none;
+            padding: 12px 32px;
+            border-radius: 60px;
+            font-weight: 600;
+            font-size: 1.05rem;
+            cursor: pointer;
+            transition: background 0.15s, transform 0.1s;
+            box-shadow: 0 4px 8px rgba(0, 40, 70, 0.12);
+            letter-spacing: 0.3px;
+            flex: 0 0 auto;
+        }
+        .primary-btn:hover {
+            background: #123a5e;
+        }
+        .primary-btn:active {
+            transform: scale(0.96);
+        }
+        .secondary-btn {
+            background: transparent;
+            border: 1px solid #b9c8dd;
+            padding: 10px 22px;
+            border-radius: 60px;
+            font-weight: 500;
+            color: #1e3a5f;
+            cursor: pointer;
+            transition: 0.1s;
+        }
+        .secondary-btn:hover {
+            background: #eef3fa;
+        }
+        .match-result {
+            margin-top: 20px;
+            padding: 18px 20px;
+            background: #f0f5fe;
+            border-radius: 24px;
+            display: none;
+            border: 1px solid #cdddec;
+        }
+        .match-result.visible {
+            display: block;
+        }
+        .score-block {
+            display: flex;
+            align-items: center;
+            gap: 20px;
+            flex-wrap: wrap;
+        }
+        .score-circle {
+            width: 80px;
+            height: 80px;
+            border-radius: 50%;
+            background: conic-gradient(#1e7e4a 0deg, #e9edf2 0deg);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 700;
+            font-size: 1.8rem;
+            color: #0b2b3b;
+            background-color: #e2e8f0;
+            flex-shrink: 0;
+        }
+        .score-detail {
+            flex: 1;
+        }
+        .score-detail p {
+            margin: 4px 0;
+        }
+        .keyword-hint {
+            background: #ffffffd9;
+            padding: 12px 16px;
+            border-radius: 20px;
+            margin-top: 14px;
+            border-left: 4px solid #2d6a9f;
+        }
+        .keyword-hint span {
+            background: #e6edf6;
+            display: inline-block;
+            padding: 4px 12px;
+            border-radius: 30px;
+            margin: 4px 6px 4px 0;
+            font-size: 0.9rem;
+        }
+        .placeholder-ad {
+            background: #f1f5f9;
+            border-radius: 20px;
+            padding: 14px 18px;
+            margin: 28px 0 16px;
+            text-align: center;
+            color: #475569;
+            border: 1px dashed #b9c8dd;
+            font-size: 0.95rem;
+        }
+        .placeholder-ad span {
+            background: #ffffffb3;
+            padding: 2px 12px;
+            border-radius: 40px;
+        }
+        .affiliate-resources {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 16px;
+            background: #f8fafd;
+            border-radius: 24px;
+            padding: 18px 20px;
+            margin: 24px 0 18px;
+            border: 1px solid #e2eaf2;
+        }
+        .affiliate-item {
+            flex: 1 1 160px;
+            background: white;
+            border-radius: 18px;
+            padding: 12px 14px;
+            box-shadow: 0 2px 6px rgba(0,0,0,0.02);
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        .affiliate-item .emoji {
+            font-size: 1.8rem;
+        }
+        .affiliate-item a {
+            text-decoration: none;
+            color: #1e4a76;
+            font-weight: 500;
+        }
+        .affiliate-item a:hover {
+            text-decoration: underline;
+        }
+        .privacy-note {
+            font-size: 0.8rem;
+            color: #5f6c80;
+            background: #eef2f7;
+            padding: 8px 16px;
+            border-radius: 40px;
+            display: inline-block;
+            margin-top: 10px;
+        }
+        footer {
+            margin-top: 40px;
+            text-align: center;
+            color: #5f6c80;
+            font-size: 0.85rem;
+            border-top: 1px solid #dce2ec;
+            padding-top: 24px;
+        }
+        @media (max-width: 600px) {
+            header h1 {
+                font-size: 1.8rem;
+            }
+            .tool-card {
+                padding: 20px 16px;
+            }
+            .score-block {
+                flex-direction: column;
+                align-items: flex-start;
+            }
+        }
+    </style>
+</head>
+<body>
+<div class="container">
+    <header>
+        <div class="badge">🔍 免费 · 实时 · 隐私安全</div>
+        <h1>ATS简历匹配检测器</h1>
+        <p>📄 粘贴职位描述 + 简历 → 秒出匹配分 · 突破机器筛选</p>
+    </header>
+
+    <main>
+        <!-- 核心工具区 -->
+        <section class="tool-card" aria-label="简历匹配检测工具">
+            <div class="tool-grid">
+                <div class="input-area">
+                    <label for="jobDesc">📋 职位描述 (JD) <span style="font-weight:400; color:#4b5b6f;">* 粘贴完整文本</span></label>
+                    <textarea id="jobDesc" placeholder="例如：要求3年Python经验，熟悉Django，有AWS部署经验……" aria-required="true"></textarea>
+                </div>
+                <div class="input-area">
+                    <label for="resumeText">📄 你的简历 (文本) <span style="font-weight:400; color:#4b5b6f;">* 复制粘贴纯文本</span></label>
+                    <textarea id="resumeText" placeholder="粘贴简历内容，包括技能、工作经历、项目……" aria-required="true"></textarea>
+                </div>
+            </div>
+
+            <div class="action-row">
+                <button class="primary-btn" id="matchBtn">🔎 检测匹配度</button>
+                <button class="secondary-btn" id="clearBtn">🗑️ 清空</button>
+                <span style="font-size:0.85rem; color:#4b5b6f; margin-left:auto;">✨ 关键词分析</span>
+            </div>
+
+            <!-- 匹配结果展示区 -->
+            <div class="match-result" id="matchResult" role="region" aria-live="polite">
+                <div class="score-block">
+                    <div class="score-circle" id="scoreCircle">0%</div>
+                    <div class="score-detail">
+                        <p style="font-weight:600; font-size:1.2rem;">匹配度 <span id="scoreValue">0</span>%</p>
+                        <p style="color:#2c3e50;" id="matchFeedback">请输入职位描述和简历后检测</p>
+                    </div>
+                </div>
+                <div class="keyword-hint" id="keywordBox">
+                    <strong>🔑 高频关键词 (JD) :</strong> <span id="keywordTags"><span style="background:#e6edf6; padding:4px 12px; border-radius:30px;">等待检测</span></span>
+                    <div style="margin-top:8px; font-size:0.9rem; color:#2c3e50;"><span style="font-weight:500;">建议：</span><span id="suggestionText">将缺失的关键词融入简历</span></div>
+                </div>
+            </div>
+
+            <!-- 可见广告占位 (纯占位，无追踪) -->
+            <div class="placeholder-ad" aria-label="广告位">
+                <span>📢 推荐 · 简历优化服务 (赞助商位) — <strong>ResumeWord</strong> 免费ATS关键词检测扩展</span>
+            </div>
+        </section>
+
+        <!-- 联盟/资源推荐位 (相关资源) -->
+        <section class="affiliate-resources" aria-label="求职资源推荐">
+            <div class="affiliate-item">
+                <span class="emoji">📘</span>
+                <a href="#" target="_blank" rel="noopener">ATS简历模板 · 通过率提升</a>
+            </div>
+            <div class="affiliate-item">
+                <span class="emoji">⚡</span>
+                <a href="#" target="_blank" rel="noopener">SEO求职指南 · 关键词策略</a>
+            </div>
+            <div class="affiliate-item">
+                <span class="emoji">📊</span>
+                <a href="#" target="_blank" rel="noopener">匹配检测Pro (高级分析)</a>
+            </div>
+            <div style="flex:1; min-width:120px; text-align:right; font-size:0.8rem; color:#5f6c80;"># 推广资源</div>
+        </section>
+
+        <!-- 隐私说明 + 事件上报函数 -->
+        <div class="privacy-note">
+            🔒 隐私说明：事件数据可能被匿名统计以改进产品 (使用 reportEvent)。不收集个人凭据，无隐藏追踪。
+        </div>
+    </main>
+
+    <footer>
+        <p>© 2025 ATS简历匹配检测器 · 求职SEO工具 · 免费使用</p>
+    </footer>
+</div>
+
+<script>
+    (function() {
+        "use strict";
+
+        // DOM 元素
+        const jobDescEl = document.getElementById('jobDesc');
+        const resumeTextEl = document.getElementById('resumeText');
+        const matchBtn = document.getElementById('matchBtn');
+        const clearBtn = document.getElementById('clearBtn');
+        const matchResult = document.getElementById('matchResult');
+        const scoreCircle = document.getElementById('scoreCircle');
+        const scoreValue = document.getElementById('scoreValue');
+        const matchFeedback = document.getElementById('matchFeedback');
+        const keywordTags = document.getElementById('keywordTags');
+        const suggestionText = document.getElementById('suggestionText');
+
+        // 辅助: 清理文本 (归一化空格)
+        function cleanText(text) {
+            return text.replace(/\s+/g, ' ').trim();
+        }
+
+        // 提取关键词 (简单分词: 按空格/标点, 过滤短词/停用词)
+        function extractKeywords(text, minLen = 2) {
+            if (!text) return [];
+            // 中文/英文混合: 保留中文字符与字母数字组合
+            const tokens = text.match(/[\u4e00-\u9fa5a-zA-Z0-9]+/g) || [];
+            const stopWords = new Set(['的', '了', '在', '是', '我', '有', '和', '就', '不', '人', '都', '一', '一个', '上', '也', '很', '到', '说', '要', '去', '你', '会', '着', '没有', '看', '好', '自己', '这', '他', '她', '它', '们', '那', '些', '与', '及', '或', '但', '而', '且', '因为', '所以', '如果', '虽然', '然后', '之', '其', '中', '等', '能', '可以', '应该', '必须', '将', '已', '被', '把', '对', '从', '向', '在', '于', '由', '以', '为', '为了', '随着', '通过', '使用', '进行', '以及', '包括', '具有', '没有', '不是', '这个', '那个', '这些', '那些', '什么', '如何', '哪些', '怎么', '为什么', '哪个']);
+            const freq = {};
+            tokens.forEach(t => {
+                const lower = t.toLowerCase();
+                if (lower.length < minLen) return;
+                if (stopWords.has(lower)) return;
+                // 只保留至少2个字符 (中文单字忽略)
+                if (t.length < 2 && !/[\u4e00-\u9fa5]/.test(t)) return;
+                freq[lower] = (freq[lower] || 0) + 1;
+            });
+            // 排序取前15个高频词
+            const sorted = Object.entries(freq).sort((a, b) => b[1] - a[1]);
+            return sorted.slice(0, 15).map(item => item[0]);
+        }
+
+        // 计算匹配度: 基于JD关键词在简历中出现比例 (简单有效)
+        function computeMatch(jdText, resumeText) {
+            const jdClean = cleanText(jdText);
+            const resumeClean = cleanText(resumeText);
+            if (!jdClean || !resumeClean) return { score: 0, jdKeywords: [], matched: [], missing: [] };
+
+            const jdKeywords = extractKeywords(jdClean, 2);
+            if (jdKeywords.length === 0) return { score: 0, jdKeywords: [], matched: [], missing: [] };
+
+            const resumeLower = resumeClean.toLowerCase();
+            const matched = [];
+            const missing = [];
+            jdKeywords.forEach(kw => {
+                // 检查简历中是否包含该关键词 (简单包含)
+                if (resumeLower.includes(kw)) {
+                    matched.push(kw);
+                } else {
+                    missing.push(kw);
+                }
+            });
+
+            const score = Math.round((matched.length / jdKeywords.length) * 100);
+            return { score, jdKeywords, matched, missing };
+        }
+
+        // 更新UI
+        function updateResult(jdText, resumeText) {
+            if (!jdText.trim() || !resumeText.trim()) {
+                matchResult.classList.remove('visible');
+                return;
+            }
+
+            const result = computeMatch(jdText, resumeText);
+            const { score, jdKeywords, matched, missing } = result;
+
+            // 显示结果区
+            matchResult.classList.add('visible');
+            const displayScore = Math.min(100, Math.max(0, score));
+            scoreCircle.textContent = displayScore + '%';
+            scoreValue.textContent = displayScore;
+
+            // 动态圆环颜色 (简单渐变角度)
+            const angle = (displayScore / 100) * 360;
+            scoreCircle.style.background = `conic-gradient(#1e7e4a ${angle}deg, #e2e8f0 ${angle}deg)`;
+
+            // 反馈文字
+            if (displayScore >= 70) {
+                matchFeedback.textContent = '✅ 匹配度良好，简历通过ATS概率较高。可微调关键词。';
+            } else if (displayScore >= 40) {
+                matchFeedback.textContent = '⚠️ 部分匹配，建议补充缺失的关键词以提升通过率。';
+            } else {
+                matchFeedback.textContent = '❌ 匹配度偏低，请根据职位描述优化简历关键词。';
+            }
+
+            // 关键词标签 (显示JD高频词)
+            if (jdKeywords.length > 0) {
+                keywordTags.innerHTML = jdKeywords.slice(0, 10).map(kw => `<span>${kw}</span>`).join(' ');
+            } else {
+                keywordTags.innerHTML = '<span>未能提取关键词，请检查文本</span>';
+            }
+
+            // 建议: 缺失关键词
+            if (missing.length > 0) {
+                suggestionText.textContent = `考虑在简历中加入: ${missing.slice(0, 8).join('、')}`;
+            } else {
+                suggestionText.textContent = '简历覆盖了所有高频关键词，很棒！';
+            }
+
+            // 上报事件 (匿名产品改进)
+            reportEvent('ats_match_detected', {
+                score: displayScore,
+                keywordCount: jdKeywords.length,
+                matchedCount: matched.length
+            });
+        }
+
+        // 事件上报函数 (只会在配置了ORGANISM_METRICS_ENDPOINT时post)
+        window.reportEvent = function(name, payload) {
+            if (typeof window.ORGANISM_METRICS_ENDPOINT === 'string' && window.ORGANISM_METRICS_ENDPOINT) {
+                try {
+                    const body = JSON.stringify({ event: name, payload: payload || {}, timestamp: Date.now() });
+                    // 使用 sendBeacon 或 fetch (无阻塞)
+                    if (navigator.sendBeacon) {
+                        navigator.sendBeacon(window.ORGANISM_METRICS_ENDPOINT, body);
+                    } else {
+                        fetch(window.ORGANISM_METRICS_ENDPOINT, {
+                            method: 'POST',
+                            body: body,
+                            keepalive: true,
+                            mode: 'no-cors' // 避免跨域问题
+                        }).catch(() => {});
+                    }
+                } catch (e) {
+                    // 静默失败
+                }
+            }
+        };
+
+        // 手动触发检测
+        function handleMatch() {
+            const jd = jobDescEl.value;
+            const resume = resumeTextEl.value;
+            if (!jd.trim() || !resume.trim()) {
+                matchResult.classList.remove('visible');
+                alert('请同时填写职位描述和简历文本');
+                return;
+            }
+            updateResult(jd, resume);
+        }
+
+        // 清空
+        function handleClear() {
+            jobDescEl.value = '';
+            resumeTextEl.value = '';
+            matchResult.classList.remove('visible');
+            // 重置圆环
+            scoreCircle.style.background = `conic-gradient(#e2e8f0 0deg, #e2e8f0 0deg)`;
+            scoreCircle.textContent = '0%';
+            scoreValue.textContent = '0';
+            matchFeedback.textContent = '请输入职位描述和简历后检测';
+            keywordTags.innerHTML = '<span>等待检测</span>';
+            suggestionText.textContent = '将缺失的关键词融入简历';
+            // 上报清空事件 (可选)
+            reportEvent('ats_tool_cleared', {});
+        }
+
+        // 绑定事件
+        matchBtn.addEventListener('click', handleMatch);
+        clearBtn.addEventListener('click', handleClear);
+
+        // 支持Ctrl+Enter快捷检测
+        document.addEventListener('keydown', function(e) {
+            if ((e.ctrlKey || e.metaKey) && e.key === 'Enter') {
+                handleMatch();
+            }
+        });
+
+        // 初始化: 如果已有示例内容可自动检测? 留空; 但可加示例填充 (可选)
+        // 为了演示，预填示例 (但为了干净体验，不预填)
+        // 但可添加占位提示
+
+        // 设置端点示例 (不配置则不上报)
+        // 如果希望测试上报，可取消注释下面一行 (但无实际端点)
+        // window.ORGANISM_METRICS_ENDPOINT = 'https://example.com/metrics';
+
+        console.log('ATS简历匹配检测器已启动 · 匿名事件上报就绪');
+    })();
+</script>
+
+<section data-organism-discovery="hub" style="margin:32px auto 20px;max-width:1040px;padding:16px;border-top:1px solid #d9e2ec;color:#475569;font:14px/1.5 system-ui,-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif">
+  <strong style="display:block;color:#0f172a;margin-bottom:6px">More free browser tools</strong>
+  <p style="margin:0 0 8px">This page is part of an autonomous micro-tool network. Explore the live tool directory and related utilities.</p>
+  <p style="margin:0"><a href="https://kingms888.github.io/do-digital-organism-index/" style="color:#0f766e;font-weight:700">Open the tool directory</a> </p>
+</section>
+</body>
+</html>
